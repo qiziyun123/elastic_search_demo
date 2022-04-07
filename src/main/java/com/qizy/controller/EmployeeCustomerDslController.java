@@ -49,10 +49,21 @@ public class EmployeeCustomerDslController {
      * @param customerName 客户名称
      * @return
      */
-    @GetMapping("listCustomerByEmployeeParam")
-    public List<CustomerVO> listCustomerByEmployeeParam(@RequestParam(value = "employeeId") String employeeId,
+    @GetMapping("listCustomerByEmployeeIdAndCustomerName")
+    public List<CustomerVO> listCustomerByEmployeeIdAndCustomerName(@RequestParam(value = "employeeId") String employeeId,
                                                         @RequestParam(value = "customerName") String customerName){
-        return employeeCustomerService.listCustomerByEmployeeParam(employeeId,customerName);
+        return employeeCustomerService.listCustomerByEmployeeIdAndCustomerName(employeeId,customerName);
+    }
+
+    /**
+     * has_parent 师范
+     * 比如查询 返回员工姓名是 指定姓名的 所有 客户，并支持分页（可跳页）
+     */
+    @GetMapping("pageCustomerByEmployeeName")
+    public List<CustomerVO> pageCustomerByEmployeeName(@RequestParam(value = "employeeName") String employeeName,
+                                           @RequestParam(value = "page") Integer page,
+                                           @RequestParam(value = "size") Integer size){
+        return employeeCustomerService.pageCustomerByEmployeeName(employeeName,page,size);
     }
 
 

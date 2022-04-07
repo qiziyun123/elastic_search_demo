@@ -12,5 +12,7 @@ public interface EmployeeCustomerService {
 
     List<CustomerVO> listCustomerByEmployee(String employeeId);
 
-    List<CustomerVO> listCustomerByEmployeeParam(String employeeId, String customerName);
+    List<CustomerVO> listCustomerByEmployeeIdAndCustomerName(String employeeId, String customerName);
+
+    List<CustomerVO> pageCustomerByEmployeeName(String employeeName, Integer page, Integer size);
 }
