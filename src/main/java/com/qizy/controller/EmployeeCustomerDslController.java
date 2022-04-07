@@ -1,6 +1,7 @@
 package com.qizy.controller;
 
 
+import com.qizy.common.PageInfo;
 import com.qizy.es.vo.CustomerVO;
 import com.qizy.es.vo.EmployeeVO;
 import com.qizy.service.EmployeeCustomerService;
@@ -60,9 +61,9 @@ public class EmployeeCustomerDslController {
      * 比如查询 返回员工姓名是 指定姓名的 所有 客户，并支持分页（可跳页）
      */
     @GetMapping("pageCustomerByEmployeeName")
-    public List<CustomerVO> pageCustomerByEmployeeName(@RequestParam(value = "employeeName") String employeeName,
-                                           @RequestParam(value = "page") Integer page,
-                                           @RequestParam(value = "size") Integer size){
+    public PageInfo<CustomerVO> pageCustomerByEmployeeName(@RequestParam(value = "employeeName") String employeeName,
+                                                           @RequestParam(value = "page") Integer page,
+                                                           @RequestParam(value = "size") Integer size){
         return employeeCustomerService.pageCustomerByEmployeeName(employeeName,page,size);
     }
 

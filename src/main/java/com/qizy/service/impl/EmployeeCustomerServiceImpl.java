@@ -2,13 +2,14 @@ package com.qizy.service.impl;
 
 
 import com.alibaba.fastjson.JSON;
+import com.qizy.common.PageInfo;
 import com.qizy.es.vo.CustomerVO;
 import com.qizy.es.vo.EmployeeVO;
 import com.qizy.service.EmployeeCustomerService;
+import com.qizy.service.EsCommonService;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -29,15 +30,13 @@ import java.util.List;
 public class EmployeeCustomerServiceImpl implements EmployeeCustomerService {
 
     @Autowired
-    RestHighLevelClient restHighLevelClient;
+    EsCommonService esCommonService;
 
     @Override
     public List<EmployeeVO> listEmployByCorpDept(Integer corpId, Integer deptId) {
         String indexName = "corp_employee_customer";
-
         // 最外层bool
         BoolQueryBuilder boolQueryBuilder1 = QueryBuilders.boolQuery();
-
         // 里层bool
         BoolQueryBuilder boolQueryBuilder2 = QueryBuilders.boolQuery();
         boolQueryBuilder2.must(QueryBuilders.matchQuery("corp_id", corpId));
@@ -46,23 +45,8 @@ public class EmployeeCustomerServiceImpl implements EmployeeCustomerService {
         }
         boolQueryBuilder1.filter(boolQueryBuilder2);
 
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        sourceBuilder.query(boolQueryBuilder1);
-        sourceBuilder.size(30);
-
-        SearchRequest searchRequest = new SearchRequest(indexName);
-        searchRequest.source(sourceBuilder);
-        System.out.println(sourceBuilder.toString());
         try {
-            SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
-//          int total = (int)searchResponse.getHits().getTotalHits().value;
-            SearchHit[] searchHits = searchResponse.getHits().getHits();
-            List<EmployeeVO> list = new ArrayList<>();
-            for (SearchHit searchHit : searchHits) {
-                EmployeeVO employee = JSON.parseObject(searchHit.getSourceAsString(), EmployeeVO.class);
-                list.add(employee);
-            }
-            return list;
+            return esCommonService.boolQuery(indexName,boolQueryBuilder1,EmployeeVO.class);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -73,7 +57,6 @@ public class EmployeeCustomerServiceImpl implements EmployeeCustomerService {
     @Override
     public List<CustomerVO> listCustomerByEmployee(String employeeId) {
         String indexName = "corp_employee_customer";
-
         // 最外层bool
         BoolQueryBuilder boolQueryBuilder1 = QueryBuilders.boolQuery();
 
@@ -83,11 +66,13 @@ public class EmployeeCustomerServiceImpl implements EmployeeCustomerService {
         boolQueryBuilder2.must(parentIdQueryBuilder);
         boolQueryBuilder1.filter(boolQueryBuilder2);
 
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        sourceBuilder.query(boolQueryBuilder1);
-        sourceBuilder.size(20);
+        try {
+            return esCommonService.boolQuery(indexName,boolQueryBuilder1,CustomerVO.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        return getCustomerVOS(indexName, sourceBuilder);
+        return null;
     }
 
     @Override
@@ -103,25 +88,17 @@ public class EmployeeCustomerServiceImpl implements EmployeeCustomerService {
         boolQueryBuilder2.must(parentIdQueryBuilder).must(customerNameQuery);
         boolQueryBuilder1.filter(boolQueryBuilder2);
 
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        sourceBuilder.query(boolQueryBuilder1);
-        sourceBuilder.size(10);
+        try {
+            return esCommonService.boolQuery(indexName,boolQueryBuilder1,CustomerVO.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        return getCustomerVOS(indexName, sourceBuilder);
+        return null;
     }
 
     @Override
-    public List<CustomerVO> pageCustomerByEmployeeName(String employeeName, Integer page, Integer size) {
-        if (page < 1) {
-            throw new RuntimeException("分页参数错误");
-        }
-        int sum = page * size;
-        if (sum > 10000) {
-            throw new RuntimeException("es 默认不能超过10000");
-        }
-        // 计算 from
-        int from = (page - 1) * size;
-
+    public PageInfo<CustomerVO> pageCustomerByEmployeeName(String employeeName, Integer page, Integer size) {
         String indexName = "corp_employee_customer";
         // 最外层bool
         BoolQueryBuilder boolQueryBuilder1 = QueryBuilders.boolQuery();
@@ -131,30 +108,18 @@ public class EmployeeCustomerServiceImpl implements EmployeeCustomerService {
         HasParentQueryBuilder hasParentQueryBuilder = new HasParentQueryBuilder("employee",innerHasParentQueryBulider,false);
         boolQueryBuilder2.must(hasParentQueryBuilder);
         boolQueryBuilder1.filter(boolQueryBuilder2);
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        sourceBuilder.query(boolQueryBuilder1);
-        sourceBuilder.size(size);
-        sourceBuilder.from(from);
 
-        return getCustomerVOS(indexName, sourceBuilder);
-    }
-
-    private List<CustomerVO> getCustomerVOS(String indexName, SearchSourceBuilder sourceBuilder) {
-        SearchRequest searchRequest = new SearchRequest(indexName);
-        searchRequest.source(sourceBuilder);
-        System.out.println(sourceBuilder.toString());
         try {
-            SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
-            SearchHit[] searchHits = searchResponse.getHits().getHits();
-            List<CustomerVO> list = new ArrayList<>();
-            for (SearchHit searchHit : searchHits) {
-                CustomerVO customerVO = JSON.parseObject(searchHit.getSourceAsString(), CustomerVO.class);
-                list.add(customerVO);
-            }
-            return list;
+            return esCommonService.pageBoolQuery(indexName,boolQueryBuilder1,CustomerVO.class,
+                    page,size);
         } catch (IOException e) {
             e.printStackTrace();
+            PageInfo<CustomerVO> pageInfo = new PageInfo<>();
+            pageInfo.setList(null);
+            pageInfo.setTotal(0);
+            return pageInfo;
         }
-        return null;
+
     }
+
 }

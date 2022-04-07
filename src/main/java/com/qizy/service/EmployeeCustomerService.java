@@ -1,6 +1,7 @@
 package com.qizy.service;
 
 
+import com.qizy.common.PageInfo;
 import com.qizy.es.vo.CustomerVO;
 import com.qizy.es.vo.EmployeeVO;
 
@@ -14,5 +15,5 @@ public interface EmployeeCustomerService {
 
     List<CustomerVO> listCustomerByEmployeeIdAndCustomerName(String employeeId, String customerName);
 
-    List<CustomerVO> pageCustomerByEmployeeName(String employeeName, Integer page, Integer size);
+    PageInfo<CustomerVO> pageCustomerByEmployeeName(String employeeName, Integer page, Integer size);
 }
