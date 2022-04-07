@@ -3,6 +3,7 @@ package com.qizy.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.qizy.common.PageInfo;
+import com.qizy.common.Scroll;
 import com.qizy.es.vo.CustomerVO;
 import com.qizy.es.vo.EmployeeVO;
 import com.qizy.service.EmployeeCustomerService;
@@ -120,6 +121,28 @@ public class EmployeeCustomerServiceImpl implements EmployeeCustomerService {
             return pageInfo;
         }
 
+    }
+
+    @Override
+    public Scroll<EmployeeVO> getScrollEmployByCorpDept(Integer corpId, Integer deptId,Integer size) {
+        String indexName = "corp_employee_customer";
+        // 最外层bool
+        BoolQueryBuilder boolQueryBuilder1 = QueryBuilders.boolQuery();
+        // 里层bool
+        BoolQueryBuilder boolQueryBuilder2 = QueryBuilders.boolQuery();
+        boolQueryBuilder2.must(QueryBuilders.matchQuery("corp_id", corpId));
+        if (!ObjectUtils.isEmpty(deptId)) {
+            boolQueryBuilder2.must(QueryBuilders.matchQuery("dept_id", deptId));
+        }
+        boolQueryBuilder1.filter(boolQueryBuilder2);
+
+        try {
+            return esCommonService.getScroll(indexName,boolQueryBuilder1,EmployeeVO.class,size);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
 }

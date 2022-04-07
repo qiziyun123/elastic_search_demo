@@ -2,9 +2,11 @@ package com.qizy.controller;
 
 
 import com.qizy.common.PageInfo;
+import com.qizy.common.Scroll;
 import com.qizy.es.vo.CustomerVO;
 import com.qizy.es.vo.EmployeeVO;
 import com.qizy.service.EmployeeCustomerService;
+import com.qizy.service.EsCommonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,8 +22,12 @@ public class EmployeeCustomerDslController {
     @Autowired
     EmployeeCustomerService employeeCustomerService;
 
+    @Autowired
+    EsCommonService esCommonService;
+
     /**
      * 查询某个企业某个部门企业的员工
+     * ES 默认查询10条
      * @param corpId 企业ID
      * @return
      */
@@ -65,6 +71,24 @@ public class EmployeeCustomerDslController {
                                                            @RequestParam(value = "page") Integer page,
                                                            @RequestParam(value = "size") Integer size){
         return employeeCustomerService.pageCustomerByEmployeeName(employeeName,page,size);
+    }
+
+    /**
+     * 查询某个企业某个部门企业的员工
+     * ES 默认查询10条
+     * @param corpId 企业ID
+     * @return
+     */
+    @GetMapping("getScrollEmployByCorpDept")
+    public Scroll<EmployeeVO> getScrollEmployByCorpDept(@RequestParam(value = "corpId") Integer corpId,
+                                                        @RequestParam(value = "deptId" ,required = false) Integer deptId,
+                                                        @RequestParam(value = "size") Integer size){
+        return employeeCustomerService.getScrollEmployByCorpDept(corpId,deptId,size);
+    }
+
+    @GetMapping("nextScrollEmployByCorpDept")
+    public List<EmployeeVO> getScrollEmployByCorpDept(@RequestParam(value = "nextId") String nextId){
+        return esCommonService.nextScrollList(nextId);
     }
 
 
