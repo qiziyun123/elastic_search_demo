@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -86,10 +87,25 @@ public class EmployeeCustomerDslController {
         return employeeCustomerService.getScrollEmployByCorpDept(corpId,deptId,size);
     }
 
+    /**
+     * 翻页查询 某个企业某个部门企业的员工
+     * @param nextId
+     * @return
+     * @throws IOException
+     */
     @GetMapping("nextScrollEmployByCorpDept")
-    public List<EmployeeVO> getScrollEmployByCorpDept(@RequestParam(value = "nextId") String nextId){
-        return esCommonService.nextScrollList(nextId);
+    public List<EmployeeVO> getScrollEmployByCorpDept(@RequestParam(value = "nextId") String nextId) throws IOException {
+        return esCommonService.nextScrollList(nextId,EmployeeVO.class);
     }
 
+    /**
+     * 模糊搜索客户名称 所有 客户，并支持分页（可跳页）
+     */
+    @GetMapping("pageCustomerByName")
+    public PageInfo<CustomerVO> pageCustomerByName(@RequestParam(value = "name") String name,
+                                                           @RequestParam(value = "page") Integer page,
+                                                           @RequestParam(value = "size") Integer size){
+        return employeeCustomerService.pageCustomerByName(name,page,size);
+    }
 
 }

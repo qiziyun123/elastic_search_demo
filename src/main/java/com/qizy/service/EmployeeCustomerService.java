@@ -19,4 +19,6 @@ public interface EmployeeCustomerService {
     PageInfo<CustomerVO> pageCustomerByEmployeeName(String employeeName, Integer page, Integer size);
 
     Scroll<EmployeeVO> getScrollEmployByCorpDept(Integer corpId, Integer deptId,Integer size);
+
+    PageInfo<CustomerVO> pageCustomerByName(String name, Integer page, Integer size);
 }

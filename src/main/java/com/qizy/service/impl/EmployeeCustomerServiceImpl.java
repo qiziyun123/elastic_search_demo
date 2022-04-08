@@ -1,30 +1,26 @@
 package com.qizy.service.impl;
 
 
-import com.alibaba.fastjson.JSON;
+
 import com.qizy.common.PageInfo;
 import com.qizy.common.Scroll;
 import com.qizy.es.vo.CustomerVO;
 import com.qizy.es.vo.EmployeeVO;
 import com.qizy.service.EmployeeCustomerService;
 import com.qizy.service.EsCommonService;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.RequestOptions;
+
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.join.query.HasParentQueryBuilder;
 import org.elasticsearch.join.query.ParentIdQueryBuilder;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -143,6 +139,29 @@ public class EmployeeCustomerServiceImpl implements EmployeeCustomerService {
         }
 
         return null;
+    }
+
+    @Override
+    public PageInfo<CustomerVO> pageCustomerByName(String name, Integer page, Integer size) {
+        String indexName = "corp_employee_customer";
+        // 最外层bool
+        BoolQueryBuilder boolQueryBuilder1 = QueryBuilders.boolQuery();
+        // 里层bool
+        BoolQueryBuilder boolQueryBuilder2 = QueryBuilders.boolQuery();
+        String wildName = "*"+name+"*";
+        boolQueryBuilder2.must(QueryBuilders.wildcardQuery("customer_name", wildName));
+
+        boolQueryBuilder1.filter(boolQueryBuilder2);
+        try {
+            return esCommonService.pageBoolQuery(indexName,boolQueryBuilder1,CustomerVO.class,
+                    page,size);
+        } catch (IOException e) {
+            e.printStackTrace();
+            PageInfo<CustomerVO> pageInfo = new PageInfo<>();
+            pageInfo.setList(null);
+            pageInfo.setTotal(0);
+            return pageInfo;
+        }
     }
 
 }
