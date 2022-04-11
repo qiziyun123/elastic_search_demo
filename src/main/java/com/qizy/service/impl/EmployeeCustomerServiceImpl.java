@@ -4,6 +4,7 @@ package com.qizy.service.impl;
 
 import com.qizy.common.PageInfo;
 import com.qizy.common.Scroll;
+import com.qizy.es.model.Customer;
 import com.qizy.es.vo.CustomerVO;
 import com.qizy.es.vo.EmployeeVO;
 import com.qizy.service.EmployeeCustomerService;
@@ -16,11 +17,13 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.join.query.HasParentQueryBuilder;
 import org.elasticsearch.join.query.ParentIdQueryBuilder;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -64,7 +67,15 @@ public class EmployeeCustomerServiceImpl implements EmployeeCustomerService {
         boolQueryBuilder1.filter(boolQueryBuilder2);
 
         try {
-            return esCommonService.boolQuery(indexName,boolQueryBuilder1,CustomerVO.class);
+            List<Customer> modelList = esCommonService.boolQuery(indexName,boolQueryBuilder1, Customer.class);
+            List<CustomerVO> resList = new ArrayList<>();
+            for (Customer customer:modelList) {
+                CustomerVO vo = new CustomerVO();
+                BeanUtils.copyProperties(customer,vo);
+                vo.setEmployeeId(customer.getJoinName().getParent());
+                resList.add(vo);
+            }
+            return resList;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -161,6 +172,31 @@ public class EmployeeCustomerServiceImpl implements EmployeeCustomerService {
             pageInfo.setList(null);
             pageInfo.setTotal(0);
             return pageInfo;
+        }
+    }
+
+    @Override
+    public void updateUserScore(String customerId, String employeeId, Integer score) {
+        String indexName = "corp_employee_customer";
+        List<String> properties = new ArrayList<>();
+        properties.add("user_score");
+        List<String> values = new ArrayList<>();
+        values.add(String.valueOf(score));
+        try{
+            esCommonService.updateChild(indexName,customerId,employeeId,properties,values);
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void deleteCustom(String customerId, String employeeId) {
+        String indexName = "corp_employee_customer";
+        try{
+            esCommonService.deleteChild(indexName,customerId,employeeId);
+        }catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

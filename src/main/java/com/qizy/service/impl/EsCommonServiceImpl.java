@@ -4,14 +4,18 @@ package com.qizy.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.qizy.common.PageInfo;
 import com.qizy.common.Scroll;
-import com.qizy.es.vo.EmployeeVO;
 import com.qizy.service.EsCommonService;
+import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchScrollRequest;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
@@ -22,7 +26,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class EsCommonServiceImpl implements EsCommonService {
@@ -37,6 +40,7 @@ public class EsCommonServiceImpl implements EsCommonService {
 
         SearchRequest searchRequest = new SearchRequest(indexName);
         searchRequest.source(sourceBuilder);
+        sourceBuilder.size(30);
         System.out.println(sourceBuilder.toString());
 
         SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
@@ -53,7 +57,7 @@ public class EsCommonServiceImpl implements EsCommonService {
 
     @Override
     public <T> PageInfo<T> pageBoolQuery(String indexName, BoolQueryBuilder boolQueryBuilder, Class<T> clazz,
-                                         Integer page, Integer size) throws IOException,RuntimeException {
+                                         Integer page, Integer size) throws IOException, RuntimeException {
         if (page < 1) {
             throw new RuntimeException("分页参数错误");
         }
@@ -90,7 +94,7 @@ public class EsCommonServiceImpl implements EsCommonService {
     }
 
     @Override
-    public <T> Scroll<T> getScroll(String indexName, QueryBuilder queryBuilder, Class<T> clazz,Integer size) throws IOException {
+    public <T> Scroll<T> getScroll(String indexName, QueryBuilder queryBuilder, Class<T> clazz, Integer size) throws IOException {
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder.query(queryBuilder);
         sourceBuilder.size(size);
@@ -118,7 +122,7 @@ public class EsCommonServiceImpl implements EsCommonService {
     }
 
     @Override
-    public <T>List<T> nextScrollList(String nextId,Class<T> clazz) throws IOException {
+    public <T> List<T> nextScrollList(String nextId, Class<T> clazz) throws IOException {
         // 创建SearchScrollRequest
         SearchScrollRequest scrollRequest = new SearchScrollRequest(nextId);
         // 指定scroll的生存时间，若不指定它会归零
@@ -127,16 +131,49 @@ public class EsCommonServiceImpl implements EsCommonService {
         SearchResponse scrollResp = restHighLevelClient.scroll(scrollRequest, RequestOptions.DEFAULT);
         //8、判断是否查询到了数据输出
         SearchHit[] hits = scrollResp.getHits().getHits();
-        if(hits != null && hits.length>0){
+        if (hits != null && hits.length > 0) {
             List<T> list = new ArrayList<T>();
             for (SearchHit searchHit : hits) {
                 T doc = JSON.parseObject(searchHit.getSourceAsString(), clazz);
                 list.add(doc);
             }
             return list;
-        }else {
+        } else {
             return null;
         }
 
+    }
+
+    /**
+     * 局部更新
+     *
+     * @param indexName
+     * @param childId
+     * @param parentId
+     */
+    @Override
+    public void updateChild(String indexName, String childId, String parentId,
+                            List<String> properties, List<String> values) throws IOException {
+        UpdateRequest updateRequest = new UpdateRequest();
+        updateRequest.index(indexName);
+        updateRequest.id(childId);
+        updateRequest.routing(parentId);
+
+        XContentBuilder source = XContentFactory.jsonBuilder().startObject();
+        for (int i = 0; i < properties.size(); i++) {
+            source.field(properties.get(i),values.get(i));
+        }
+        source.endObject();
+        updateRequest.doc(source);
+        restHighLevelClient.update(updateRequest, RequestOptions.DEFAULT);
+
+    }
+
+    @Override
+    public void deleteChild(String indexName, String childId, String parentId) throws IOException {
+        DeleteRequest deleteRequest = new DeleteRequest(indexName);
+        deleteRequest.id(childId);
+        deleteRequest.routing(parentId);
+        restHighLevelClient.delete(deleteRequest, RequestOptions.DEFAULT);
     }
 }

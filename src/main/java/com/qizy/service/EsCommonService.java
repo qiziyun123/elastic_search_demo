@@ -56,5 +56,23 @@ public interface EsCommonService {
      * @param nextId
      * @return
      */
-    <T> List<T> nextScrollList(String nextId,Class<T> clazz) throws IOException;
+    <T> List<T> nextScrollList(String nextId, Class<T> clazz) throws IOException;
+
+    /**
+     * 父子类型更新子文档
+     *
+     * @param indexName
+     * @param childId
+     * @param parentId
+     */
+    void updateChild(String indexName, String childId, String parentId, List<String> properties, List<String> values) throws IOException;
+
+    /**
+     * 删除子文档
+     *
+     * @param indexName
+     * @param childId
+     * @param parentId
+     */
+    void deleteChild(String indexName, String childId, String parentId) throws IOException;
 }

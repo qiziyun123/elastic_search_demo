@@ -21,4 +21,8 @@ public interface EmployeeCustomerService {
     Scroll<EmployeeVO> getScrollEmployByCorpDept(Integer corpId, Integer deptId,Integer size);
 
     PageInfo<CustomerVO> pageCustomerByName(String name, Integer page, Integer size);
+
+    void updateUserScore(String customerId, String employeeId, Integer score);
+
+    void deleteCustom(String customerId, String employeeId);
 }
