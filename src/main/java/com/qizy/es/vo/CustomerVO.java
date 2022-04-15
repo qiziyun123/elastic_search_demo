@@ -15,6 +15,8 @@ public class CustomerVO {
     @JSONField(name ="customer_name")
     private String customerName;
 
+    private String nick;
+
     @JSONField(name ="customer_tag_name")
     private Set<String> customerTagName;
 

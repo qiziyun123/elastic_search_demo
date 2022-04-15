@@ -50,10 +50,12 @@ public class PrepareDataServiceImpl implements PrepareDataService {
                 "李宁", "李虎", "李儒", "李哲", "李贵", "李焘", "李晖", "李森", "李泉", "李平", "李黎", "李飞", "李琛", "李晓", "雷瑞山",
                 "李功", "李韬", "李彬", "李龙", "李穆", "李江", "李宏", "李杰", "李康", "李钦", "李阳", "李剑", "李蒙", "李恒", "徐迪",
                 "李旭", "李柏", "李楠", "李奎", "李进", "方若强", "陆枝妃", "陆齐榕", "田婕遥", "方秀蓓", "黄飞", "杨汝辰", "张斌", "谢峰",
-                "徐静玉", "周莎", "赖利雨", "吕枝莉", "钟香蓉", "赖英", "万怀宜", "沈凤丹", "李宁", "蔡子强", "侯求武", "冉镇龙", "蒋日军",
-                "徐孝姣", "黄毕海", "熊从发", "袁怀斐", "张天志", "叶问", "李小龙", "金山找", "刘玉叶", "刘洋", "马洋", "马永贞", "郭伟", "姜辉",
+                "徐静玉", "周莎", "赖利雨", "吕枝莉", "钟香蓉", "赖英", "万怀宜", "沈凤丹", "李宁", "蔡子强", "侯求武", "冉镇龙", "蒋日军","田浓浓",
+                "徐孝姣", "黄毕海", "熊从发", "袁怀斐", "张天志", "叶问", "李小龙", "金山找", "刘玉叶", "刘洋", "马洋", "马永贞", "郭伟", "姜辉","冯春雨",
                 "王磊", "李雪梅", "张庆忠", "吴建忠", "徐强", "亢钊", "刘海涛", "邹雨宸", "翟涛", "焦阳", "包龙星", "李天一", "冯辉", "王凯", "陈甜甜", "冉琳艳", "颜红颜",
                 "张海涛", "王育", "车范根", "杜文慧", "李有才", "邵震", "李佳琪", "于根", "董文晓", "董伟", "吴希伟", "黄河", "潘绍井"};
+
+        String[] nicks = {"放弃亦勇气","遗憾的追逐","覆水难收","曾经海誓山盟","思涵","鸿光","海阳","雪梅","小龙","甜甜","浓浓","春雨"};
         Map<Integer, String> corpMap = new HashMap<>();
         corpMap.put(0, "A");
         corpMap.put(1, "B");
@@ -130,6 +132,8 @@ public class PrepareDataServiceImpl implements PrepareDataService {
                     String customerId = UUID.randomUUID().toString();
                     customer.setCustomerId(customerId);
                     String customerName = randomCustomerName(userNames);
+                    String nick = randomNick(nicks);
+                    customer.setNick(nick);
                     customer.setCustomerName(customerName);
                     JoinName joinName = new JoinName();
                     joinName.setName("customer");
@@ -158,6 +162,11 @@ public class PrepareDataServiceImpl implements PrepareDataService {
 
         }
 
+    }
+
+    private String randomNick(String[] nicks) {
+        int index = new Random().nextInt(nicks.length);
+        return nicks[index];
     }
 
     private String randomCustomerName(String[] userNames) {
