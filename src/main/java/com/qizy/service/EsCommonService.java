@@ -58,6 +58,15 @@ public interface EsCommonService {
      */
     <T> List<T> nextScrollList(String nextId, Class<T> clazz) throws IOException;
 
+
+    /**
+     * 局部更新文档
+     *
+     * @param indexName
+     * @param docId
+     */
+    void updateDoc(String indexName, String docId, List<String> properties, List<String> values) throws IOException;
+
     /**
      * 父子类型更新子文档
      *
@@ -75,4 +84,6 @@ public interface EsCommonService {
      * @param parentId
      */
     void deleteChild(String indexName, String childId, String parentId) throws IOException;
+
+    void updateSingleProAddValueNoConcurrent(String indexName, String docId, String property, long addValue) throws IOException;
 }

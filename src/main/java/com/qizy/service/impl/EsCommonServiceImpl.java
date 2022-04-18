@@ -10,7 +10,6 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchScrollRequest;
 import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
@@ -18,6 +17,8 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.script.Script;
+import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class EsCommonServiceImpl implements EsCommonService {
@@ -144,6 +147,21 @@ public class EsCommonServiceImpl implements EsCommonService {
 
     }
 
+    @Override
+    public void updateDoc(String indexName, String docId, List<String> properties, List<String> values) throws IOException {
+        UpdateRequest updateRequest = new UpdateRequest();
+        updateRequest.index(indexName);
+        updateRequest.id(docId);
+        XContentBuilder source = XContentFactory.jsonBuilder().startObject();
+        for (int i = 0; i < properties.size(); i++) {
+            source.field(properties.get(i),values.get(i));
+        }
+        source.endObject();
+        System.out.println(source.toString());
+        updateRequest.doc(source);
+        restHighLevelClient.update(updateRequest, RequestOptions.DEFAULT);
+    }
+
     /**
      * 局部更新
      *
@@ -175,5 +193,18 @@ public class EsCommonServiceImpl implements EsCommonService {
         deleteRequest.id(childId);
         deleteRequest.routing(parentId);
         restHighLevelClient.delete(deleteRequest, RequestOptions.DEFAULT);
+    }
+
+    @Override
+    public void updateSingleProAddValueNoConcurrent(String indexName, String docId, String property, long addValue) throws IOException {
+        UpdateRequest updateRequest = new UpdateRequest();
+        updateRequest.index(indexName);
+        updateRequest.id(docId);
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("addValue",addValue);
+        Script inline = new Script(ScriptType.INLINE, "painless",
+                "ctx._source."+property+" += params.addValue", parameters);
+        updateRequest.script(inline);
+        restHighLevelClient.update(updateRequest, RequestOptions.DEFAULT);
     }
 }
