@@ -4,6 +4,7 @@ import com.qizy.common.PageInfo;
 import com.qizy.common.Scroll;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
 
 import java.io.IOException;
 import java.util.List;
@@ -48,7 +49,7 @@ public interface EsCommonService {
      * @param <T>
      * @return
      */
-    <T> Scroll<T> getScroll(String indexName, QueryBuilder queryBuilder, Class<T> clazz, Integer size) throws IOException;
+    <T> Scroll<T> getScroll(String indexName, QueryBuilder queryBuilder, List<SortBuilder> sortList, Class<T> clazz, Integer size) throws IOException;
 
     /**
      * 已获得翻页的基础上

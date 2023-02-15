@@ -44,7 +44,6 @@ public class EmployeeCustomerServiceImpl implements EmployeeCustomerService {
             boolQueryBuilder2.must(QueryBuilders.matchQuery("dept_id", deptId));
         }
         boolQueryBuilder1.filter(boolQueryBuilder2);
-
         try {
             return esCommonService.boolQuery(indexName,boolQueryBuilder1,EmployeeVO.class);
         } catch (IOException e) {
@@ -65,7 +64,6 @@ public class EmployeeCustomerServiceImpl implements EmployeeCustomerService {
         ParentIdQueryBuilder parentIdQueryBuilder = new ParentIdQueryBuilder("customer", employeeId);
         boolQueryBuilder2.must(parentIdQueryBuilder);
         boolQueryBuilder1.filter(boolQueryBuilder2);
-
         try {
             List<Customer> modelList = esCommonService.boolQuery(indexName,boolQueryBuilder1, Customer.class);
             List<CustomerVO> resList = new ArrayList<>();
@@ -144,7 +142,7 @@ public class EmployeeCustomerServiceImpl implements EmployeeCustomerService {
         boolQueryBuilder1.filter(boolQueryBuilder2);
 
         try {
-            return esCommonService.getScroll(indexName,boolQueryBuilder1,EmployeeVO.class,size);
+            return esCommonService.getScroll(indexName,boolQueryBuilder1,null,EmployeeVO.class,size);
         } catch (IOException e) {
             e.printStackTrace();
         }

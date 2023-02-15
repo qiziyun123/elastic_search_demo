@@ -12,7 +12,7 @@ import org.elasticsearch.action.search.SearchScrollRequest;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.core.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -21,6 +21,7 @@ import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -97,12 +98,18 @@ public class EsCommonServiceImpl implements EsCommonService {
     }
 
     @Override
-    public <T> Scroll<T> getScroll(String indexName, QueryBuilder queryBuilder, Class<T> clazz, Integer size) throws IOException {
+    public <T> Scroll<T> getScroll(String indexName, QueryBuilder queryBuilder, List<SortBuilder> sortList,
+                                   Class<T> clazz, Integer size) throws IOException {
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder.query(queryBuilder);
         sourceBuilder.size(size);
         SearchRequest searchRequest = new SearchRequest(indexName);
         searchRequest.source(sourceBuilder);
+        if (sortList != null) {
+            for (SortBuilder sortBuilder : sortList) {
+                sourceBuilder.sort(sortBuilder);
+            }
+        }
         // 限制2分钟
         searchRequest.scroll(TimeValue.timeValueMinutes(2L));
         System.out.println(sourceBuilder.toString());
@@ -154,7 +161,7 @@ public class EsCommonServiceImpl implements EsCommonService {
         updateRequest.id(docId);
         XContentBuilder source = XContentFactory.jsonBuilder().startObject();
         for (int i = 0; i < properties.size(); i++) {
-            source.field(properties.get(i),values.get(i));
+            source.field(properties.get(i), values.get(i));
         }
         source.endObject();
         System.out.println(source.toString());
@@ -179,7 +186,7 @@ public class EsCommonServiceImpl implements EsCommonService {
 
         XContentBuilder source = XContentFactory.jsonBuilder().startObject();
         for (int i = 0; i < properties.size(); i++) {
-            source.field(properties.get(i),values.get(i));
+            source.field(properties.get(i), values.get(i));
         }
         source.endObject();
         updateRequest.doc(source);
@@ -201,9 +208,9 @@ public class EsCommonServiceImpl implements EsCommonService {
         updateRequest.index(indexName);
         updateRequest.id(docId);
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("addValue",addValue);
+        parameters.put("addValue", addValue);
         Script inline = new Script(ScriptType.INLINE, "painless",
-                "ctx._source."+property+" += params.addValue", parameters);
+                "ctx._source." + property + " += params.addValue", parameters);
         updateRequest.script(inline);
         restHighLevelClient.update(updateRequest, RequestOptions.DEFAULT);
     }

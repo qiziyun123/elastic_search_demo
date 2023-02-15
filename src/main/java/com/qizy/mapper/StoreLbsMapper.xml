@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qizy.mapper.StoreLbsMapper">
+    <resultMap id="BaseResultMap" type="com.qizy.mysql.model.StoreLbsModel">
+        <result column="id" jdbcType="INTEGER" property="id"/>
+        <result column="corp_id" jdbcType="INTEGER" property="corpId"/>
+        <result column="store_name" jdbcType="VARCHAR" property="storeName"/>
+        <result column="lat" jdbcType="DOUBLE" property="lat" />
+        <result column="lng" jdbcType="DOUBLE" property="lng"/>
+        <result column="adcode" jdbcType="INTEGER" property="adCode"/>
+        <result column="adname" jdbcType="VARCHAR" property="adName"/>
+        <result column="province_code" jdbcType="INTEGER" property="provinceCode"/>
+        <result column="province_name" jdbcType="VARCHAR" property="provinceName"/>
+        <result column="city_code" jdbcType="INTEGER" property="cityCode"/>
+        <result column="city_name" jdbcType="VARCHAR" property="cityName"/>
+        <result column="address" jdbcType="VARCHAR" property="address"/>
+        <result column="poi_type_code" jdbcType="INTEGER" property="poiTypeCode"/>
+        <result column="poi_type_name" jdbcType="VARCHAR" property="poiTypeName"/>
+        <result column="data_type" jdbcType="SMALLINT" property="dataType"/>
+    </resultMap>
+
+
+    <sql id="Base_Column_List">
+        id,corp_id, store_name,lat,lng,adcode,adname,province_code,
+        province_name,city_code,city_name,address,poi_type_code,poi_type_name
+    </sql>
+
+    <insert id="batchInsertOrUpdate" parameterType="java.util.List" >
+        insert into store_lbs (corp_id, store_name,lat,lng,adcode,adname,province_code,
+        province_name,city_code,city_name,address,poi_type_code,poi_type_name,data_type)
+        values
+        <foreach collection="saveList" item="items" separator=",">
+            (#{items.corpId, jdbcType=INTEGER},
+            #{items.storeName, jdbcType=VARCHAR},
+            #{items.lat, jdbcType=DOUBLE},
+            #{items.lng, jdbcType=DOUBLE},
+            #{items.adCode, jdbcType=INTEGER},
+            #{items.adName, jdbcType=VARCHAR},
+            #{items.provinceCode, jdbcType=INTEGER},
+            #{items.provinceName, jdbcType=VARCHAR},
+            #{items.cityCode, jdbcType=INTEGER},
+            #{items.cityName, jdbcType=VARCHAR},
+            #{items.address, jdbcType=VARCHAR},
+            #{items.poiTypeCode, jdbcType=INTEGER},
+            #{items.poiTypeName, jdbcType=VARCHAR},
+            #{items.dataType, jdbcType=INTEGER}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        store_name = VALUES(store_name),
+        lat = VALUES(lat),
+        lng = VALUES(lng),
+        adcode = VALUES(adcode),
+        adname = VALUES(adname),
+        province_code = VALUES(province_code),
+        province_name = VALUES(province_name),
+        city_code = VALUES(city_code),
+        city_name = VALUES(city_name),
+        poi_type_code = VALUES(poi_type_code),
+        poi_type_name = VALUES(poi_type_name),
+        data_type = VALUES(data_type)
+    </insert>
+
+    <select id="queryBetween" resultMap="BaseResultMap">
+        select * from store_lbs where id BETWEEN #{start} and #{end}
+    </select>
+
+    <select id="getByIds" resultType="java.lang.Integer">
+        select id from store_lbs where id in
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>
